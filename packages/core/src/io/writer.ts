@@ -13,6 +13,7 @@ import type { JSONDocument } from '../json-document.js';
 import { Accessor, type AnimationSampler, Camera, Material } from '../properties/index.js';
 import type { GLTF } from '../types/gltf.js';
 import { BufferUtils, Logger, MathUtils } from '../utils/index.js';
+import { writeComponent } from './accessor-component.js';
 import { WriterContext } from './writer-context.js';
 
 const { BufferViewUsage } = WriterContext;
@@ -190,34 +191,7 @@ export class GLTFWriter {
 					for (let j = 0; j < elementSize; j++) {
 						const viewByteOffset = i * byteStride + vertexByteOffset + j * componentSize;
 						const value = array[i * elementSize + j];
-						switch (componentType) {
-							case Accessor.ComponentType.FLOAT:
-								view.setFloat32(viewByteOffset, value, true);
-								break;
-							case Accessor.ComponentType.BYTE:
-								view.setInt8(viewByteOffset, value);
-								break;
-							case Accessor.ComponentType.SHORT:
-								view.setInt16(viewByteOffset, value, true);
-								break;
-							case Accessor.ComponentType.UNSIGNED_BYTE:
-								view.setUint8(viewByteOffset, value);
-								break;
-							case Accessor.ComponentType.UNSIGNED_SHORT:
-								view.setUint16(viewByteOffset, value, true);
-								break;
-							case Accessor.ComponentType.UNSIGNED_INT:
-								view.setUint32(viewByteOffset, value, true);
-								break;
-							case Accessor.ComponentType.FLOAT16: // KHR_accessor_float16
-								view.setFloat16(viewByteOffset, value, true);
-								break;
-							case Accessor.ComponentType.FLOAT64: // KHR_accessor_float64
-								view.setFloat64(viewByteOffset, value, true);
-								break;
-							default:
-								throw new Error('Unexpected component type: ' + componentType);
-						}
+						writeComponent(view, viewByteOffset, value, componentType);
 					}
 					vertexByteOffset += BufferUtils.padNumber(elementSize * componentSize);
 				}

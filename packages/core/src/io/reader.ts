@@ -13,6 +13,7 @@ import type { JSONDocument } from '../json-document.js';
 import { Accessor, AnimationSampler, Camera } from '../properties/index.js';
 import type { GLTF } from '../types/gltf.js';
 import { BufferUtils, FileUtils, type ILogger, ImageUtils, Logger, MathUtils } from '../utils/index.js';
+import { readComponent } from './accessor-component.js';
 import { ReaderContext } from './reader-context.js';
 
 export interface ReaderOptions {
@@ -597,36 +598,7 @@ function getInterleavedArray(accessorDef: GLTF.IAccessor, context: ReaderContext
 	for (let i = 0; i < accessorDef.count; i++) {
 		for (let j = 0; j < elementSize; j++) {
 			const byteOffset = accessorByteOffset + i * byteStride + j * componentSize;
-			let value: number;
-			switch (accessorDef.componentType) {
-				case Accessor.ComponentType.FLOAT:
-					value = view.getFloat32(byteOffset, true);
-					break;
-				case Accessor.ComponentType.UNSIGNED_INT:
-					value = view.getUint32(byteOffset, true);
-					break;
-				case Accessor.ComponentType.UNSIGNED_SHORT:
-					value = view.getUint16(byteOffset, true);
-					break;
-				case Accessor.ComponentType.UNSIGNED_BYTE:
-					value = view.getUint8(byteOffset);
-					break;
-				case Accessor.ComponentType.SHORT:
-					value = view.getInt16(byteOffset, true);
-					break;
-				case Accessor.ComponentType.BYTE:
-					value = view.getInt8(byteOffset);
-					break;
-				case Accessor.ComponentType.FLOAT16: // KHR_accessor_float16
-					value = view.getFloat16(byteOffset, true);
-					break;
-				case Accessor.ComponentType.FLOAT64: // KHR_accessor_float64
-					value = view.getFloat64(byteOffset, true);
-					break;
-				default:
-					throw new Error(`Unexpected componentType "${accessorDef.componentType}".`);
-			}
-			array[i * elementSize + j] = value;
+			array[i * elementSize + j] = readComponent(view, byteOffset, accessorDef.componentType);
 		}
 	}
 
